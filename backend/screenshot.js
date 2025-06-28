@@ -24,22 +24,22 @@ export async function takeScreenshot(pageUrl, outputPath, options = {}) {
     const outputDir = path.dirname(outputPath);
     await fs.ensureDir(outputDir);
 
-    // Default options
+    // Default options optimized for free tier
     const defaultOptions = {
       viewport: {
-        width: 1440,
-        height: 900
+        width: 1280,
+        height: 720
       },
       waitForSelector: null, // Optional: wait for specific element
-      waitTime: 2000, // Wait time after page load
+      waitTime: 3000, // Wait time after page load
       fullPage: false,
-      quality: 90,
+      quality: 80, // Lower quality for free tier
       type: 'png'
     };
 
     const screenshotOptions = { ...defaultOptions, ...options };
 
-    // Launch browser
+    // Launch browser with free tier optimizations
     console.log('Launching browser...');
     browser = await puppeteer.launch({
       headless: 'new',
@@ -50,7 +50,11 @@ export async function takeScreenshot(pageUrl, outputPath, options = {}) {
         '--disable-accelerated-2d-canvas',
         '--no-first-run',
         '--no-zygote',
-        '--disable-gpu'
+        '--disable-gpu',
+        '--disable-web-security',
+        '--disable-features=VizDisplayCompositor',
+        '--memory-pressure-off',
+        '--max_old_space_size=512' // Limit memory usage
       ]
     });
 
@@ -63,21 +67,36 @@ export async function takeScreenshot(pageUrl, outputPath, options = {}) {
     // Set user agent to avoid detection
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
-    // Navigate to the page
-    console.log('Navigating to page...');
-    const response = await page.goto(pageUrl, {
-      waitUntil: 'networkidle2',
-      timeout: 30000
+    // Set resource limits for free tier
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      // Block unnecessary resources to save memory
+      if (['image', 'stylesheet', 'font'].includes(req.resourceType())) {
+        req.abort();
+      } else {
+        req.continue();
+      }
     });
 
-    if (!response.ok()) {
-      throw new Error(`Failed to load page: ${response.status()} ${response.statusText()}`);
+    // Navigate to the page with shorter timeout for free tier
+    console.log('Navigating to page...');
+    const response = await page.goto(pageUrl, {
+      waitUntil: 'domcontentloaded', // Faster than networkidle2
+      timeout: 20000 // Shorter timeout for free tier
+    });
+
+    if (!response || !response.ok()) {
+      throw new Error(`Failed to load page: ${response ? response.status() : 'No response'} ${response ? response.statusText() : ''}`);
     }
 
     // Wait for specific selector if provided
     if (screenshotOptions.waitForSelector) {
       console.log(`Waiting for selector: ${screenshotOptions.waitForSelector}`);
-      await page.waitForSelector(screenshotOptions.waitForSelector, { timeout: 10000 });
+      try {
+        await page.waitForSelector(screenshotOptions.waitForSelector, { timeout: 8000 });
+      } catch (error) {
+        console.log(`Selector not found, continuing anyway: ${error.message}`);
+      }
     }
 
     // Wait additional time for any dynamic content
@@ -117,20 +136,24 @@ export async function takeScreenshot(pageUrl, outputPath, options = {}) {
     // Always close the browser
     if (browser) {
       console.log('Closing browser...');
-      await browser.close();
+      try {
+        await browser.close();
+      } catch (error) {
+        console.log('Error closing browser:', error.message);
+      }
     }
   }
 }
 
 /**
- * Takes a screenshot with retry logic
+ * Takes a screenshot with retry logic optimized for free tier
  * @param {string} pageUrl - The URL of the page to screenshot
  * @param {string} outputPath - The path where the screenshot should be saved
  * @param {Object} options - Screenshot options
  * @param {number} maxRetries - Maximum number of retry attempts
  * @returns {Promise<void>}
  */
-export async function takeScreenshotWithRetry(pageUrl, outputPath, options = {}, maxRetries = 3) {
+export async function takeScreenshotWithRetry(pageUrl, outputPath, options = {}, maxRetries = 2) {
   let lastError;
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -142,8 +165,8 @@ export async function takeScreenshotWithRetry(pageUrl, outputPath, options = {},
       console.log(`Screenshot attempt ${attempt} failed: ${error.message}`);
       
       if (attempt < maxRetries) {
-        // Wait before retrying (exponential backoff)
-        const delay = Math.pow(2, attempt) * 1000;
+        // Wait before retrying (shorter delay for free tier)
+        const delay = Math.pow(2, attempt) * 500;
         console.log(`Retrying in ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
