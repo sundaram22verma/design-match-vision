@@ -9,6 +9,9 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Upload, Link, AlertCircle, CheckCircle, XCircle } from "lucide-react";
 
+// API URL from environment variable or fallback to localhost for development
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 interface ComparisonResult {
   matchScore: string;
   misMatchPercentage: string;
@@ -58,7 +61,7 @@ const Index = () => {
         formData.append('figmaImage', figmaFile);
         formData.append('pageUrl', pageUrl);
 
-        const response = await fetch('http://localhost:5000/compare-file', {
+        const response = await fetch(`${API_BASE_URL}/compare-file`, {
           method: 'POST',
           body: formData,
         });
@@ -75,7 +78,7 @@ const Index = () => {
         // Handle URL
         requestBody.figmaImageUrl = figmaUrl;
 
-        const response = await fetch('http://localhost:5000/compare', {
+        const response = await fetch(`${API_BASE_URL}/compare`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -316,7 +319,7 @@ const Index = () => {
                         {comparisonResult?.originalImages?.figma ? (
                           <div className="aspect-[4/3] rounded-lg border-2 border-gray-200 overflow-hidden bg-gray-50">
                             <img 
-                              src={`http://localhost:5000${comparisonResult.originalImages.figma}`}
+                              src={`${API_BASE_URL}${comparisonResult.originalImages.figma}`}
                               alt="Figma Design"
                               className="w-full h-full object-contain"
                               onError={(e) => {
@@ -348,7 +351,7 @@ const Index = () => {
                         {comparisonResult?.originalImages?.code ? (
                           <div className="aspect-[4/3] rounded-lg border-2 border-gray-200 overflow-hidden bg-gray-50">
                             <img 
-                              src={`http://localhost:5000${comparisonResult.originalImages.code}`}
+                              src={`${API_BASE_URL}${comparisonResult.originalImages.code}`}
                               alt="Live Page Screenshot"
                               className="w-full h-full object-contain"
                               onError={(e) => {
@@ -384,13 +387,13 @@ const Index = () => {
                         <div className="relative aspect-[4/3] rounded-lg border-2 border-gray-200 overflow-hidden bg-gray-50">
                           {/* Background Image (Live Page) */}
                           <img 
-                            src={`http://localhost:5000${comparisonResult.originalImages.code}`}
+                            src={`${API_BASE_URL}${comparisonResult.originalImages.code}`}
                             alt="Live Page Screenshot"
                             className="absolute inset-0 w-full h-full object-contain"
                           />
                           {/* Overlay Image (Figma Design) */}
                           <img 
-                            src={`http://localhost:5000${comparisonResult.originalImages.figma}`}
+                            src={`${API_BASE_URL}${comparisonResult.originalImages.figma}`}
                             alt="Figma Design"
                             className="absolute inset-0 w-full h-full object-contain transition-opacity duration-300"
                             style={{ opacity: overlayOpacity }}
@@ -436,7 +439,7 @@ const Index = () => {
                       {comparisonResult?.diffImagePath ? (
                         <div className="aspect-[4/3] rounded-lg border-2 border-gray-200 overflow-hidden bg-gray-50">
                           <img 
-                            src={`http://localhost:5000${comparisonResult.diffImagePath}`}
+                            src={`${API_BASE_URL}${comparisonResult.diffImagePath}`}
                             alt="Visual Differences"
                             className="w-full h-full object-contain"
                             onError={(e) => {
