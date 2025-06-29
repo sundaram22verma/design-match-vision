@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 
-const BASE_URL = 'http://localhost:5000';
+const BASE_URL = 'http://localhost:1010';
 
 async function testBackend() {
   console.log('🧪 Testing Figma-to-Code Comparison Backend\n');
@@ -61,7 +61,7 @@ async function testBackend() {
   } catch (error) {
     console.error('❌ Test failed:', error.message);
     console.log('');
-    console.log('💡 Make sure the backend server is running on port 5000');
+    console.log('💡 Make sure the backend server is running on port 1010');
     console.log('   Run: cd backend && npm start');
   }
 

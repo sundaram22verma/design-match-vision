@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Upload, Link, AlertCircle, CheckCircle, XCircle } from "lucide-react";
 
 // API URL from environment variable or fallback to localhost for development
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:1010';
 
 interface ComparisonResult {
   matchScore: string;
