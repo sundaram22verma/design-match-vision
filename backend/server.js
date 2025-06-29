@@ -12,7 +12,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 1010;
 
 // Configure multer for file uploads
 const upload = multer({
@@ -34,7 +34,14 @@ const upload = multer({
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5000',
+    'http://172.29.15.150:5000',
+    'http://127.0.0.1:5000'
+  ],
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'assets')));
 
@@ -216,8 +223,9 @@ app.use('*', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Figma-to-Code comparison server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🔍 Comparison endpoint: http://localhost:${PORT}/compare`);
+  console.log(`🌐 VM Access: http://172.29.15.150:${PORT}`);
 }); 
